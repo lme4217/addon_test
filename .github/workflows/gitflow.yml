@@ -1,0 +1,21 @@
+name: gitflow
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  gitflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar rama origen -> destino
+        env:
+          HEAD: ${{ github.head_ref }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          case "$BASE" in
+            main)
+              [[ "$HEAD" =~ ^(release|hotfix)/ ]] || { echo "::error::A main solo entran release/* o hotfix/* (recibido: $HEAD)"; exit 1; } ;;
+            develop)
+              [[ "$HEAD" =~ ^(feature|bugfix|release|hotfix)/ ]] || { echo "::error::A develop solo entran feature/*, bugfix/*, release/* o hotfix/* (recibido: $HEAD)"; exit 1; } ;;
+            release/*)
+              [[ "$HEAD" =~ ^(bugfix|hotfix)/ ]] || { echo "::error::A una release solo entran bugfix/* o hotfix/*"; exit 1; } ;;
+          esac
